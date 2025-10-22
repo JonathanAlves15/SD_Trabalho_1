@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package votacao;
+
+// Tipos de usuário
+enum UserType {
+  ELEITOR = 0;
+  ADMINISTRADOR = 1;
+}
+
+// Pedido de login
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+  UserType type = 3;
+}
+
+// Resposta ao login
+message LoginResponse {
+  bool success = 1;
+  string message = 2;
+  repeated Candidate candidates = 3;
+}
+
+// Representação do candidato
+message Candidate {
+  int32 id = 1;
+  string name = 2;
+}
+
+// Voto
+message Vote {
+  int32 candidateId = 1;
+}
+
+// Comando administrador (adicionar/remover candidato)
+enum AdminCommandType {
+  ADD = 0;
+  REMOVE = 1;
+}
+
+message AdminCommand {
+  AdminCommandType command = 1;
+  Candidate candidate = 2;
+}
+
+// Nota informativa (via multicast UDP)
+message InfoNote {
+  string message = 1;
+  int64 timestamp = 2;
+}
+
+// Resposta genérica
+message GenericResponse {
+  bool success = 1;
+  string message = 2;
+}
