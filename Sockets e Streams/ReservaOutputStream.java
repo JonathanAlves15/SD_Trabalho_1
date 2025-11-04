@@ -2,52 +2,53 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
-import java.util.Objects;
+
 import Classes.Reserva;
 
 public class ReservaOutputStream extends OutputStream {
+
     private final Reserva[] reservas;
     private final int quantidade;
     private final OutputStream destino;
-    private final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     public ReservaOutputStream(Reserva[] reservas, int quantidade, OutputStream destino) {
-        this.reservas = Objects.requireNonNull(reservas);
+        this.reservas = reservas;
         this.quantidade = quantidade;
         this.destino = destino;
     }
 
     @Override
     public void write(int b) throws IOException {
-        destino.write(b);
+        destino.write(b); // delega escrita de um único byte
     }
 
     public void enviarReservas() throws IOException {
-        for (int i = 0; i < quantidade; i++) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+        for (int i = 0; i < quantidade && i < reservas.length; i++) {
             Reserva r = reservas[i];
+            String dados = String.format(
+                    "Reserva{id='%s', espaco='%s', usuario='%s', inicio='%s', fim='%s'}",
+                    r.getId(),
+                    r.getEspacoId(),
+                    r.getUsuarioId(),
+                    r.getInicio().format(formatter),
+                    r.getFim().format(formatter)
+            );
 
-            byte[] idBytes = r.getId().getBytes(StandardCharsets.UTF_8);
-            byte[] usuarioIdBytes = r.getUsuarioId().getBytes(StandardCharsets.UTF_8);
-            byte[] inicioBytes = r.getInicio().format(formatter).getBytes(StandardCharsets.UTF_8);
+            byte[] bytes = dados.getBytes(StandardCharsets.UTF_8);
+            int tamanho = bytes.length;
 
-            writeInt(idBytes.length);
-            destino.write(idBytes);
+            // Envia o tamanho do registro
+            destino.write((tamanho >> 24) & 0xFF);
+            destino.write((tamanho >> 16) & 0xFF);
+            destino.write((tamanho >> 8) & 0xFF);
+            destino.write(tamanho & 0xFF);
 
-            writeInt(usuarioIdBytes.length);
-            destino.write(usuarioIdBytes);
+            destino.write(bytes);
 
-            writeInt(inicioBytes.length);
-            destino.write(inicioBytes);
+            destino.flush();
         }
-
-        destino.flush();
-    }
-
-    private void writeInt(int value) throws IOException {
-        destino.write((value >> 24) & 0xFF);
-        destino.write((value >> 16) & 0xFF);
-        destino.write((value >> 8) & 0xFF);
-        destino.write(value & 0xFF);
     }
 
     @Override

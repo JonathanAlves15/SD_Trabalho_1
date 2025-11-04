@@ -5,11 +5,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+
 import Classes.Reserva;
 
 public class ReservaInputStream extends InputStream {
+
     private final InputStream origem;
-    private final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     public ReservaInputStream(InputStream origem) {
         this.origem = origem;
@@ -17,45 +18,50 @@ public class ReservaInputStream extends InputStream {
 
     @Override
     public int read() throws IOException {
-        return origem.read();
-    }
-    
-    private int readInt() throws IOException {
-        int b1 = origem.read();
-        int b2 = origem.read();
-        int b3 = origem.read();
-        int b4 = origem.read();
-        if (b4 == -1) throw new IOException("Não foi possível ler inteiro do stream.");
-        return ((b1 << 24) + (b2 << 16) + (b3 << 8) + b4);
+        return origem.read(); // leitura simples delegada
     }
 
-    private String lerString() throws IOException {
-        int tamanho = readInt();
-        byte[] buffer = new byte[tamanho];
-        int totalLido = 0;
-        while (totalLido < tamanho) {
-            int lidos = origem.read(buffer, totalLido, tamanho - totalLido);
-            if (lidos == -1) throw new IOException("Fim inesperado do stream.");
-            totalLido += lidos;
-        }
-        return new String(buffer, StandardCharsets.UTF_8);
-    }
+    public List<Reserva> lerReservas() throws IOException {
+        List<Reserva> reservas = new ArrayList<>();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-    public List<Reserva> lerReservas(int quantidade) throws IOException {
-        List<Reserva> lista = new ArrayList<>();
+        while (true) {
+            byte[] tamanhoBytes = new byte[4];
+            int bytesLidos = origem.read(tamanhoBytes);
+            if (bytesLidos == -1) break; // fim do stream
+            if (bytesLidos < 4) break;
 
-        for (int i = 0; i < quantidade; i++) {
-            String id = lerString();
-            String usuarioId = lerString();
-            String inicioStr = lerString();
+            int tamanho = ((tamanhoBytes[0] & 0xFF) << 24) |
+                          ((tamanhoBytes[1] & 0xFF) << 16) |
+                          ((tamanhoBytes[2] & 0xFF) << 8)  |
+                          (tamanhoBytes[3] & 0xFF);
+
+            // lê o conteúdo textual
+            byte[] dados = new byte[tamanho];
+            int lidos = origem.read(dados);
+            if (lidos < tamanho) break;
+
+            String texto = new String(dados, StandardCharsets.UTF_8);
+
+            // exemplo de texto: Reserva{id='R1', espaco='E1', usuario='U1', inicio='2025-11-04 03:00', fim='2025-11-04 05:00'}
+            String[] partes = texto.replace("Reserva{", "")
+                    .replace("}", "")
+                    .replace("'", "")
+                    .split(", ");
+
+            String id = partes[0].split("=")[1];
+            String espaco = partes[1].split("=")[1];
+            String usuario = partes[2].split("=")[1];
+            String inicioStr = partes[3].split("=")[1];
+            String fimStr = partes[4].split("=")[1];
 
             LocalDateTime inicio = LocalDateTime.parse(inicioStr, formatter);
+            LocalDateTime fim = LocalDateTime.parse(fimStr, formatter);
 
-            Reserva r = new Reserva(id, "espaco-fake", usuarioId, inicio, inicio.plusHours(1));
-            lista.add(r);
+            reservas.add(new Reserva(id, espaco, usuario, inicio, fim));
         }
 
-        return lista;
+        return reservas;
     }
 
     @Override
