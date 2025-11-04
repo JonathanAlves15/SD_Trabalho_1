@@ -10,7 +10,7 @@ public class TesteReservaInputStream {
         try {
             // Ler da entrada padrão
             System.out.println("=== Leitura de System.in ===");
-            System.out.println("Cole ou redirecione bytes gerados pelo ReservaOutputStream, depois pressione Ctrl+D (Linux/macOS) ou Ctrl+Z (Windows).");
+            System.out.println("Cole ou redirecione bytes gerados pelo ReservaOutputStream.");
             try (ReservaInputStream ris = new ReservaInputStream(System.in)) {
                 List<Reserva> reservas = ris.lerReservas();
                 for (Reserva r : reservas) {
@@ -37,7 +37,7 @@ public class TesteReservaInputStream {
                     System.out.println("Recebido via TCP: " + r.getId());
                 }
             } catch (IOException e) {
-                System.out.println("Servidor TCP não encontrado (teste opcional).");
+                System.out.println("Servidor TCP não encontrado.");
             }
 
         } catch (Exception e) {

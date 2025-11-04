@@ -17,7 +17,6 @@ public class TesteReservaOutputStream {
             System.out.println("=== Enviando para System.out ===");
             ReservaOutputStream out1 = new ReservaOutputStream(reservas, 2, System.out);
             out1.enviarReservas();
-            out1.close();
 
             // Arquivo
             System.out.println("\n\n=== Enviando para arquivo ===");
@@ -37,6 +36,8 @@ public class TesteReservaOutputStream {
             } catch (IOException e) {
                 System.out.println("Servidor TCP não encontrado.");
             }
+
+            out1.close();
 
         } catch (Exception e) {
             e.printStackTrace();
