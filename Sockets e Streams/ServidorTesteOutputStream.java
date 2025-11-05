@@ -17,6 +17,7 @@ public class ServidorTesteOutputStream {
                 System.out.println("Mensagem recebida: " + clientMessage);
                 
                 client.close();
+                scan.close();
                 System.out.println("Conexão encerrada");
             }
 

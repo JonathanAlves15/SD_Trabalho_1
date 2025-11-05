@@ -19,7 +19,7 @@ public class ReservaOutputStream extends OutputStream {
 
     @Override
     public void write(int b) throws IOException {
-        destino.write(b); // delega escrita de um único byte
+        destino.write(b); // Escrita de um único byte
     }
 
     public void enviarReservas() throws IOException {

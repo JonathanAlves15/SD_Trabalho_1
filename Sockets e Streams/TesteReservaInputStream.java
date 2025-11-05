@@ -17,7 +17,6 @@ public class TesteReservaInputStream {
                     new Reserva("R2", "E2", "U2", LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(3))
             };
 
-            // Saída padrão
             ByteArrayOutputStream memoria = new ByteArrayOutputStream();
             ReservaOutputStream out = new ReservaOutputStream(output, output.length, memoria);
             out.enviarReservas();
