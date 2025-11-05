@@ -18,45 +18,49 @@ public class ReservaInputStream extends InputStream {
 
     @Override
     public int read() throws IOException {
-        return origem.read(); // leitura simples delegada
+        return origem.read(); // leitura simples
+    }
+
+    //Lê origem por completo e coverte em String
+    public String lerOrigem() throws IOException
+    {
+        byte[] bytes = origem.readNBytes(origem.available());
+        String texto = new String(bytes, StandardCharsets.UTF_8);
+        return texto;
     }
 
     public List<Reserva> lerReservas() throws IOException {
         List<Reserva> reservas = new ArrayList<>();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        String texto = lerOrigem();
+        System.out.println("Origem: " + texto);
 
-        while (true) {
-            byte[] tamanhoBytes = new byte[4];
-            int bytesLidos = origem.read(tamanhoBytes);
-            if (bytesLidos == -1) break; // fim do stream
-            if (bytesLidos < 4) break;
+        //byte[] dados = new byte[tamanho];
+        //int lidos = origem.read(dados);
+        //if (lidos < tamanho) break;
 
-            int tamanho = ((tamanhoBytes[0] & 0xFF) << 24) |
-                          ((tamanhoBytes[1] & 0xFF) << 16) |
-                          ((tamanhoBytes[2] & 0xFF) << 8)  |
-                          (tamanhoBytes[3] & 0xFF);
+        // exemplo de texto: ^Reserva{id='R1', espaco='E1', usuario='U1', inicio='2025-11-04 03:00', fim='2025-11-04 05:00'}
+        String textoFormated = texto.replace("Reserva{", "")
+                .replace("}", "")
+                .replace("'", "")
+                .replace("^", "|");
 
-            // lê o conteúdo textual
-            byte[] dados = new byte[tamanho];
-            int lidos = origem.read(dados);
-            if (lidos < tamanho) break;
+        String[] reservaString = textoFormated.split("[|]");
 
-            String texto = new String(dados, StandardCharsets.UTF_8);
-
-            // exemplo de texto: Reserva{id='R1', espaco='E1', usuario='U1', inicio='2025-11-04 03:00', fim='2025-11-04 05:00'}
-            String[] partes = texto.replace("Reserva{", "")
-                    .replace("}", "")
-                    .replace("'", "")
-                    .split(", ");
+        for(int i = 1; i < reservaString.length; i++)
+        {
+            String[] partes = reservaString[i].split(", ");
 
             String id = partes[0].split("=")[1];
             String espaco = partes[1].split("=")[1];
             String usuario = partes[2].split("=")[1];
             String inicioStr = partes[3].split("=")[1];
-            String fimStr = partes[4].split("=")[1];
+            String fimStr = partes[4].split("=")[1]; 
 
-            LocalDateTime inicio = LocalDateTime.parse(inicioStr, formatter);
-            LocalDateTime fim = LocalDateTime.parse(fimStr, formatter);
+            System.out.println(id + " | " + espaco + " | " + usuario + " | " + inicioStr + " | " + fimStr);
+
+            LocalDateTime inicio = LocalDateTime.parse(inicioStr.trim(), formatter);
+            LocalDateTime fim = LocalDateTime.parse(fimStr.trim(), formatter);
 
             reservas.add(new Reserva(id, espaco, usuario, inicio, fim));
         }

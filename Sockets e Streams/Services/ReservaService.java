@@ -5,7 +5,8 @@ import java.util.List;
 import Classes.Reserva;
 
 public class ReservaService {
-    private List<Reserva> reservas;
+    //Armazenamento temporário
+    private List<Reserva> reservas = new ArrayList<>();
 
     public ReservaService() {
         this.reservas = new ArrayList<>();

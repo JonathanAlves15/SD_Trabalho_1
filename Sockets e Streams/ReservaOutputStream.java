@@ -28,12 +28,12 @@ public class ReservaOutputStream extends OutputStream {
         for (int i = 0; i < quantidade && i < reservas.length; i++) {
             Reserva r = reservas[i];
             String dados = String.format(
-                    "Reserva{id='%s', espaco='%s', usuario='%s', inicio='%s', fim='%s'}",
-                    r.getId(),
-                    r.getEspacoId(),
-                    r.getUsuarioId(),
-                    r.getInicio().format(formatter),
-                    r.getFim().format(formatter)
+                "Reserva{id='%s', espaco='%s', usuario='%s', inicio='%s', fim='%s'}",
+                r.getId(),
+                r.getEspacoId(),
+                r.getUsuarioId(),
+                r.getInicio().format(formatter),
+                r.getFim().format(formatter)
             );
 
             byte[] bytes = dados.getBytes(StandardCharsets.UTF_8);
